@@ -22,10 +22,10 @@ public class Users {
     @Column(name = "password", length = 255, nullable = false)
     private String password;
 
-    @Column(name = "email", length = 255, unique = true) // Longitud común para emails
+    @Column(name = "email", length = 255, unique = true)
     private String email;
 
-    @Column(name = "created_at", nullable = false, updatable = false) // No actualizable después de la creación
+    @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt;
 
     @Column(name = "updated_at", nullable = false)
