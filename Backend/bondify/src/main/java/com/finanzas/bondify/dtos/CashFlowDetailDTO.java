@@ -9,7 +9,8 @@ import java.time.LocalDate;
 public class CashFlowDetailDTO {
     private Integer id;
 
-    private BondOperation bondOperation;
+    private Integer bondOperationId;
+    //private BondOperation bondOperation;
 
     private Integer periodNumber; // Nº (Número de período)
     private LocalDate date; // Fecha
