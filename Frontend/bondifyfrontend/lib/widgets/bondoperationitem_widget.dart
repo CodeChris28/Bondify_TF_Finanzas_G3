@@ -1,41 +1,90 @@
-import 'package:bondifyfrontend/models/bondoperation_model.dart';
-import 'package:bondifyfrontend/providers/bondoperation_provider.dart';
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
+import 'package:bondifyfrontend/models/bondoperation_model.dart';
 
 class BondoperationitemWidget extends StatelessWidget {
   const BondoperationitemWidget({
     super.key,
     required this.bondOperation,
-    });
+  });
 
-    final BondOperation bondOperation;
+  final BondOperation bondOperation;
 
   @override
   Widget build(BuildContext context) {
-    final bondOperationProvider = context.read<BondoperationProvider>();
-    return Container(
-      margin: EdgeInsets.symmetric(vertical: 10),
-      padding: EdgeInsets.all(10),
-      decoration: BoxDecoration(
-        color: const Color.fromARGB(255, 238, 235, 221),
-        borderRadius: BorderRadius.circular(10),
-        boxShadow: List<BoxShadow>.generate(
-          3,
-          (index)=> BoxShadow(
-            color: const Color.fromARGB(66, 0, 0, 0),
-            offset: Offset(0, 2 * (index + 1)),
-              blurRadius: 2 * (index + 1),
-          ),
+    return Card(
+      margin: const EdgeInsets.symmetric(vertical: 8),
+      elevation: 4,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            /// 🔷 Título y acciones
+            Row(
+              children: [
+                Expanded(
+                  child: Text(
+                    bondOperation.operationname,
+                    style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                  ),
+                ),
+                PopupMenuButton<String>(
+                  onSelected: (value) {
+                    // Manejar acción
+                  },
+                  itemBuilder: (BuildContext context) => [
+                    const PopupMenuItem(value: 'edit', child: Text('Editar')),
+                    const PopupMenuItem(value: 'delete', child: Text('Eliminar')),
+                  ],
+                )
+              ],
+            ),
+
+            const SizedBox(height: 6),
+
+            /// Subtítulo
+            Text(
+              '${bondOperation.currency} | ${bondOperation.createdAt}',
+              style: const TextStyle(fontSize: 14, color: Colors.black54),
+            ),
+
+            const Divider(height: 20),
+
+            /// Info principal
+            Row(
+              children: [
+                const Icon(Icons.percent, size: 20),
+                const SizedBox(width: 6),
+                Text('Interés: ${bondOperation.interestratetype}'),
+              ],
+            ),
+            const SizedBox(height: 4),
+            Row(
+              children: [
+                const Icon(Icons.sync_alt, size: 20),
+                const SizedBox(width: 6),
+                Text('Método: ${bondOperation.bondmethod}'),
+              ],
+            ),
+            const SizedBox(height: 4),
+            Row(
+              children: [
+                const Icon(Icons.schedule, size: 20),
+                const SizedBox(width: 6),
+                Text('Capitalización: ${bondOperation.capitalizationperiod}'),
+              ],
+            ),
+            const SizedBox(height: 4),
+            Row(
+              children: [
+                const Icon(Icons.date_range, size: 20),
+                const SizedBox(width: 6),
+                Text('Gracia: ${bondOperation.gracePeriodStartDate} → ${bondOperation.gracePeriodEndDate}'),
+              ],
+            ),
+          ],
         ),
-      ),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Row(children: [
-            Text(bondOperation.operationname)
-          ],)
-        ],
       ),
     );
   }
