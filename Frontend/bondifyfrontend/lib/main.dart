@@ -1,3 +1,4 @@
+import 'package:bondifyfrontend/providers/bondoperation_provider.dart';
 import 'package:bondifyfrontend/providers/navigation_provider.dart';
 import 'package:bondifyfrontend/routes/routes.dart';
 import 'package:flutter/material.dart';
@@ -15,6 +16,7 @@ class MyApp extends StatelessWidget {
     return MultiProvider(
       providers: [
         ChangeNotifierProvider< NavigationProvider>(create: (_)=> NavigationProvider()),
+        ChangeNotifierProvider< BondoperationProvider>(create: (_)=> BondoperationProvider()),
       ],
       child: MaterialApp(
         title: 'Flutter Demo',
