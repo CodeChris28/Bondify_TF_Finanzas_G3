@@ -1,3 +1,5 @@
+import 'package:bondifyfrontend/models/user_model.dart';
+
 import '../models/bondoperation_model.dart';
 import 'package:flutter/material.dart';
 
@@ -5,6 +7,13 @@ class BondoperationProvider extends ChangeNotifier {
   List<BondOperation> bondOperations = [
       BondOperation(
     id: 1,
+    user: User(
+          id: 1,
+          username: 'chrisdev',
+          email: 'chris@example.com',
+          createdAt: '2025-06-01',
+          updatedAt: '2025-06-01',
+        ),
     operationname: 'Bono para empleados 2025',
     bondmethod: 'Cupón',
     currency: 'USD',
@@ -18,6 +27,13 @@ class BondoperationProvider extends ChangeNotifier {
   ),
   BondOperation(
     id: 2,
+    user: User(
+          id: 1,
+          username: 'chrisdev',
+          email: 'chris@example.com',
+          createdAt: '2025-06-01',
+          updatedAt: '2025-06-01',
+        ),
     operationname: 'Bono Construcción Lima',
     bondmethod: 'Descuento',
     currency: 'PEN',
@@ -31,6 +47,13 @@ class BondoperationProvider extends ChangeNotifier {
   ),
   BondOperation(
     id: 3,
+    user: User(
+          id: 1,
+          username: 'chrisdev',
+          email: 'chris@example.com',
+          createdAt: '2025-06-01',
+          updatedAt: '2025-06-01',
+        ),
     operationname: 'Bono Verde Financiero',
     bondmethod: 'Cupón',
     currency: 'USD',
@@ -44,6 +67,13 @@ class BondoperationProvider extends ChangeNotifier {
   ),
   BondOperation(
     id: 4,
+    user: User(
+          id: 2,
+          username: 'chrisdev2',
+          email: 'chris@example2.com',
+          createdAt: '2025-06-01',
+          updatedAt: '2025-06-01',
+        ),
     operationname: 'Bono Infraestructura Andes',
     bondmethod: 'Descuento',
     currency: 'EUR',

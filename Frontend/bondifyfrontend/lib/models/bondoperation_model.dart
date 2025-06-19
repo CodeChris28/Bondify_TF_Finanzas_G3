@@ -1,5 +1,7 @@
+import 'user_model.dart';
 class BondOperation {
   final int id;
+  final User user;
   final String operationname;
   final String bondmethod;
   final String currency;
@@ -13,6 +15,7 @@ class BondOperation {
 
   BondOperation({
     required this.id,
+    required this.user,
     required this.operationname,
     required this.bondmethod,
     required this.currency,
