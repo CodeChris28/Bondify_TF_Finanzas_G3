@@ -1,4 +1,8 @@
 package com.finanzas.bondify.repositories;
 
-public interface IBondInputDataRepository {
+import com.finanzas.bondify.entities.BondInputData;
+import org.springframework.data.jpa.repository.JpaRepository;
+
+public interface IBondInputDataRepository extends JpaRepository<BondInputData, Integer> {
+
 }
