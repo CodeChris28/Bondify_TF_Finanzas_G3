@@ -1,3 +1,5 @@
+import 'package:bondifyfrontend/providers/bond_form_provider.dart';
+import 'package:bondifyfrontend/providers/auth_provider.dart';
 import 'package:bondifyfrontend/providers/bondoperation_provider.dart';
 import 'package:bondifyfrontend/providers/navigation_provider.dart';
 import 'package:bondifyfrontend/routes/routes.dart';
@@ -19,16 +21,18 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MultiProvider(
       providers: [
-        ChangeNotifierProvider< NavigationProvider>(create: (_)=> NavigationProvider()),
-        ChangeNotifierProvider< BondoperationProvider>(create: (_)=> BondoperationProvider()),
+        ChangeNotifierProvider<BondFormProvider>(create: (_) => BondFormProvider()),
+        ChangeNotifierProvider<AuthProvider>(create: (_) => AuthProvider()),
+        ChangeNotifierProvider<NavigationProvider>(create: (_) => NavigationProvider()),
+        ChangeNotifierProvider<BondoperationProvider>(create: (_) => BondoperationProvider()),
       ],
       child: MaterialApp( 
         title: 'Flutter Demo',
-      theme: ThemeData(
-        colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
-      ),
-      routes: AppRoutes.getRoutes,
-      initialRoute: AppRoutes.initialRoute,
+        theme: ThemeData(
+          colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
+        ),
+        routes: AppRoutes.getRoutes,
+        initialRoute: AppRoutes.initialRoute,
       ),    
     );
   }

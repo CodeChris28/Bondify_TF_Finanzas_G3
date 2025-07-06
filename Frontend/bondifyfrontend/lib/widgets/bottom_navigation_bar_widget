@@ -1,0 +1,50 @@
+import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import '../providers/navigation_provider.dart';
+
+class BottomNavigationBarWidget extends StatelessWidget {
+  const BottomNavigationBarWidget({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    final navProvider = context.watch<NavigationProvider>();
+
+    return BottomNavigationBar(
+      onTap: (value) {
+        // 1. Actualiza el índice en el provider para que el ícono correcto se resalte
+        context.read<NavigationProvider>().setCurrentIndex(value);
+
+        // 2. Navega a la pantalla correspondiente usando las rutas que definiste
+        // Usamos pushReplacementNamed para no acumular pantallas en la pila de navegación.
+        switch (value) {
+          case 0:
+            Navigator.pushReplacementNamed(context, 'homeScreen');
+            break;
+          case 1:
+            Navigator.pushReplacementNamed(context, 'createOperationsScreen');
+            break;
+          // case 2:
+          //   Navigator.pushReplacementNamed(context, 'profileScreen'); // Para el futuro
+          //   break;
+        }
+      },
+      currentIndex: navProvider.currentIndex,
+      unselectedItemColor: Colors.black54,
+      selectedItemColor: Colors.deepPurple,
+      items: const [
+        BottomNavigationBarItem(
+          icon: Icon(Icons.list_alt_outlined),
+          label: "Operaciones",
+        ),
+        BottomNavigationBarItem(
+          icon: Icon(Icons.add_circle_outline),
+          label: "Crear Bono",
+        ),
+        BottomNavigationBarItem(
+          icon: Icon(Icons.person_outline),
+          label: "Perfil",
+        ),
+      ],
+    );
+  }
+}

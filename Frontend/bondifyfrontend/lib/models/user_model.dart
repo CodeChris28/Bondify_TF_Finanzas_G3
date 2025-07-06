@@ -1,15 +1,27 @@
-class User {
-  final int id;
+class UserModel {
+  final String uid; 
   final String username;
   final String email;
-  final String createdAt;
-  final String updatedAt;
 
-  User({
-    required this.id,
+  UserModel({
+    required this.uid,
     required this.username,
     required this.email,
-    required this.createdAt,
-    required this.updatedAt,
   });
+
+  Map<String, dynamic> toMap() {
+    return {
+      'uid': uid,
+      'username': username,
+      'email': email,
+    };
+  }
+
+  factory UserModel.fromMap(Map<String, dynamic> map) {
+    return UserModel(
+      uid: map['uid'] ?? '', 
+      username: map['username'] ?? '',
+      email: map['email'] ?? '',
+    );
+  }
 }
