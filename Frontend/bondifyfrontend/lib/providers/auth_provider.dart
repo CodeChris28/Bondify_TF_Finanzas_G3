@@ -61,13 +61,7 @@ class AuthProvider extends ChangeNotifier {
     notifyListeners();
   }
 
-  
 
-  // En lib/providers/auth_provider.dart
-
-// ... (el resto del código del provider no cambia) ...
-
-// La función ahora devuelve un Future<bool> (un booleano en el futuro)
 Future<bool> signInWithEmailAndPassword() async {
   _setLoading(true);
   _setErrorMessage(null);
@@ -90,5 +84,12 @@ Future<bool> signInWithEmailAndPassword() async {
   }
 }
 
-// ... (el resto del código del provider no cambia) ...
+Future<void> signOut() async {
+    // Limpiamos los controladores de texto por si acaso
+    clearControllers();
+    // Usamos el método de Firebase para cerrar la sesión actual
+    await _firebaseAuth.signOut();
+    // El listener `authStateChanges` en el constructor se encargará del resto
+  }
+
 }

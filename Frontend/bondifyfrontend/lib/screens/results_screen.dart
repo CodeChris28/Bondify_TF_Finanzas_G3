@@ -1,10 +1,9 @@
-// ✅ results_screen.dart
+import 'package:bondifyfrontend/services/financial_service.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 import 'package:bondifyfrontend/models/bondoperation_model.dart';
 import 'package:bondifyfrontend/providers/bond_form_provider.dart';
-import 'package:bondifyfrontend/services/financial_service.dart';
 
 class ResultsScreen extends StatefulWidget {
   const ResultsScreen({super.key});
@@ -58,10 +57,11 @@ class _ResultsScreenState extends State<ResultsScreen> with SingleTickerProvider
         ),
       ),
       body: Padding(
-        padding: const EdgeInsets.all(16.0),
+        padding: const EdgeInsets.symmetric(horizontal: 8.0),
         child: Column(
           children: [
             Expanded(
+              flex: 3, // Asigna más espacio a las pestañas
               child: TabBarView(
                 controller: _tabController,
                 children: [
@@ -74,21 +74,26 @@ class _ResultsScreenState extends State<ResultsScreen> with SingleTickerProvider
               ),
             ),
             Padding(
-              padding: const EdgeInsets.fromLTRB(0, 24, 0, 8),
+              padding: const EdgeInsets.fromLTRB(8, 16, 8, 8),
               child: Text(
                 'Flujo de Caja Detallado',
                 style: Theme.of(context).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
               ),
             ),
             const Divider(height: 1),
-            _buildCashFlowView(context, results),
+            // El flujo de caja ahora tiene más espacio
+            Expanded(
+              flex: 7, // Asigna más espacio al flujo de caja
+              child: _buildCashFlowView(context, results)
+            ),
           ],
         ),
       ),
     );
   }
 
-  Widget _buildInitialDataView(BuildContext context, BondOperation bond) {
+  // --- Widgets para las Pestañas (sin cambios) ---
+    Widget _buildInitialDataView(BuildContext context, BondOperation bond) {
     final numberFormat = NumberFormat.currency(locale: 'es_PE', symbol: 'S/ ');
     final percentFormat = NumberFormat("##.00#", "es_ES");
     final dateFormat = DateFormat('dd/MM/yyyy');
@@ -151,7 +156,7 @@ class _ResultsScreenState extends State<ResultsScreen> with SingleTickerProvider
     );
   }
 
-  Widget _buildRatiosView(BuildContext context, Map<String, dynamic> results) {
+    Widget _buildRatiosView(BuildContext context, Map<String, dynamic> results) {
     return Card(
       elevation: 2,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
@@ -182,69 +187,112 @@ class _ResultsScreenState extends State<ResultsScreen> with SingleTickerProvider
       ),
     );
   }
+  // --- FIN Widgets para las Pestañas ---
 
+
+  /// Widget para construir la tabla de Flujo de Caja con el nuevo estilo.
   Widget _buildCashFlowView(BuildContext context, Map<String, dynamic> results) {
     final List<CashFlowRow> cashFlow = results['cashFlow'];
     final numberFormat = NumberFormat("#,##0.00", "es_ES");
     final dateFormat = DateFormat('dd/MM/yyyy');
+    final headers = [
+      'Nº', 'Fecha', '% Inf. Anual', '% Inf. Semestral', 'Plazo Gracia', 'Bono',
+      'Bono Index.', 'Cupón (I)', 'Cuota', 'Amort.', 'Prima', 'Escudo', 'Flujo Emisor',
+      'Flujo Emisor c/E', 'Flujo Bonista', 'Flujo Act.', 'FA x Plazo', 'pConvexidad'
+    ];
 
-    return Expanded(
-      child: Scrollbar(
-        thumbVisibility: true,
+    return Card(
+      elevation: 2,
+      margin: const EdgeInsets.symmetric(vertical: 8),
+      clipBehavior: Clip.antiAlias, 
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      child: SingleChildScrollView(
+        scrollDirection: Axis.vertical,
         child: SingleChildScrollView(
-          scrollDirection: Axis.vertical,
-          child: SingleChildScrollView(
-            scrollDirection: Axis.horizontal,
-            child: DataTable(
-              columns: const [
-                DataColumn(label: Text('Nº')),
-                DataColumn(label: Text('Fecha')),
-                DataColumn(label: Text('% Inf. Anual')),
-                DataColumn(label: Text('% Inf. Semestral')),
-                DataColumn(label: Text('Plazo de Gracia')),
-                DataColumn(label: Text('Bono')),
-                DataColumn(label: Text('Bono Indexado')),
-                DataColumn(label: Text('Cupón (Interés)')),
-                DataColumn(label: Text('Cuota')),
-                DataColumn(label: Text('Amort.')),
-                DataColumn(label: Text('Prima')),
-                DataColumn(label: Text('Escudo')),
-                DataColumn(label: Text('Flujo Emisor')),
-                DataColumn(label: Text('Flujo Emisor c/E')),
-                DataColumn(label: Text('Flujo Bonista')),
-                DataColumn(label: Text('Flujo Act.')),
-                DataColumn(label: Text('FA x Plazo')),
-                DataColumn(label: Text('pConvexidad')),
-              ],
-              rows: cashFlow.map((row) {
-                final isZero = row.period == 0;
-                return DataRow(
-                  cells: [
-                    DataCell(Text(row.period.toString())),
-                    DataCell(Text(dateFormat.format(row.date.toDate()))),
-                    DataCell(Text(isZero ? '-' : '${(row.inflationAnnual ?? 0).toStringAsFixed(2)}%')),
-                    DataCell(Text(isZero ? '-' : '${(row.inflationPeriod ?? 0).toStringAsFixed(2)}%')),
-                    DataCell(Text(isZero ? '-' : row.gracePeriod ?? '-')),
-                    DataCell(Text(isZero ? '-' : numberFormat.format(row.bondBalance))),
-                    DataCell(Text(isZero ? '-' : numberFormat.format(row.indexedBond))),
-                    DataCell(Text(isZero ? '-' : numberFormat.format(row.couponInterest))),
-                    DataCell(Text(isZero ? '-' : numberFormat.format(row.quota))),
-                    DataCell(Text(isZero ? '-' : numberFormat.format(row.amortization))),
-                    DataCell(Text(isZero ? '-' : numberFormat.format(row.prima))),
-                    DataCell(Text(isZero ? '-' : numberFormat.format(row.shield))),
-                    DataCell(Text(numberFormat.format(row.issuerFlow))),
-                    DataCell(Text(numberFormat.format(row.issuerFlowWithShield))),
-                    DataCell(Text(numberFormat.format(row.bondholderFlow))),
-                    DataCell(Text(isZero ? '-' : numberFormat.format(row.flowAct))),
-                    DataCell(Text(isZero ? '-' : numberFormat.format(row.faPorPlazo))),
-                    DataCell(Text(isZero ? '-' : numberFormat.format(row.pConvexityFactor))),
-                  ],
-                );
-              }).toList(),
+          scrollDirection: Axis.horizontal,
+          child: DataTable(
+            // Estilo de los encabezados
+            headingTextStyle: const TextStyle(fontWeight: FontWeight.bold, color: Colors.black87, fontSize: 13),
+            dataRowMinHeight: 40,
+            dataRowMaxHeight: 48,
+            columnSpacing: 24.0,
+            // Aplicamos el efecto cebra a las filas
+            dataRowColor: MaterialStateProperty.resolveWith<Color?>(
+              (Set<MaterialState> states) {
+                if (states.contains(MaterialState.selected)) {
+                  return Theme.of(context).colorScheme.primary.withOpacity(0.08);
+                }
+                return null; // Usa el color predeterminado para filas no seleccionadas.
+              },
             ),
+            columns: headers.map((header) => DataColumn(label: Text(header, textAlign: TextAlign.center))).toList(),
+            rows: cashFlow.asMap().entries.map((entry) {
+              int index = entry.key;
+              CashFlowRow row = entry.value;
+              final isZero = row.period == 0;
+              
+              // Definir el color de fondo para el efecto cebra
+              final Color rowColor = index.isEven ? Colors.transparent : Colors.grey.withOpacity(0.08);
+
+              return DataRow(
+                color: MaterialStateProperty.all(rowColor),
+                cells: [
+                  _buildDataCell(row.period.toString(), isNumeric: true),
+                  _buildDataCell(dateFormat.format(row.date.toDate())),
+                  _buildDataCell(isZero ? '-' : '${(row.inflationAnnual ?? 0).toStringAsFixed(2)}%', isNumeric: true),
+                  _buildDataCell(isZero ? '-' : '${(row.inflationPeriod ?? 0).toStringAsFixed(2)}%', isNumeric: true),
+                  _buildDataCell(isZero ? '-' : row.gracePeriod ?? '-', isCenter: true),
+                  _buildDataCell(isZero ? '-' : numberFormat.format(row.bondBalance), isNumeric: true),
+                  _buildDataCell(isZero ? '-' : numberFormat.format(row.indexedBond), isNumeric: true),
+                  _buildDataCell(isZero ? '-' : numberFormat.format(row.couponInterest), value: row.couponInterest, isNumeric: true),
+                  // Celda especial para la cuota
+                  _buildDataCell(isZero ? '-' : numberFormat.format(row.quota), value: row.quota, isNumeric: true, isQuota: true),
+                  _buildDataCell(isZero ? '-' : numberFormat.format(row.amortization), value: row.amortization, isNumeric: true),
+                  _buildDataCell(isZero ? '-' : numberFormat.format(row.prima), value: row.prima, isNumeric: true),
+                  _buildDataCell(isZero ? '-' : numberFormat.format(row.shield), value: row.shield, isNumeric: true),
+                  _buildDataCell(numberFormat.format(row.issuerFlow), value: row.issuerFlow, isNumeric: true),
+                  _buildDataCell(numberFormat.format(row.issuerFlowWithShield), value: row.issuerFlowWithShield, isNumeric: true),
+                  _buildDataCell(numberFormat.format(row.bondholderFlow), value: row.bondholderFlow, isNumeric: true, isPositive: true),
+                  _buildDataCell(isZero ? '-' : numberFormat.format(row.flowAct), value: row.flowAct, isNumeric: true),
+                  _buildDataCell(isZero ? '-' : numberFormat.format(row.faPorPlazo), value: row.faPorPlazo, isNumeric: true),
+                  _buildDataCell(isZero ? '-' : numberFormat.format(row.pConvexityFactor), value: row.pConvexityFactor, isNumeric: true),
+                ],
+              );
+            }).toList(),
           ),
         ),
       ),
     );
   }
-} 
+
+  /// Widget auxiliar para crear celdas de datos con estilo condicional.
+  DataCell _buildDataCell(
+    String text, {
+    double? value,
+    bool isNumeric = false,
+    bool isPositive = false,
+    bool isQuota = false,
+    bool isCenter = false,
+  }) {
+    Color? textColor;
+    if (value != null && value < 0) {
+      textColor = Colors.red.shade700;
+    } else if (isPositive) {
+      textColor = Colors.green.shade700;
+    }
+
+    return DataCell(
+      Container(
+        // Si es la columna de cuota, le damos un fondo especial
+        color: isQuota ? Colors.orange.shade300 : Colors.transparent,
+        alignment: isNumeric ? Alignment.centerRight : (isCenter ? Alignment.center : Alignment.centerLeft),
+        padding: const EdgeInsets.symmetric(horizontal: 8.0),
+        child: Text(
+          text,
+          style: TextStyle(color: textColor, fontSize: 13, fontWeight: isQuota ? FontWeight.bold : FontWeight.normal),
+          textAlign: isNumeric ? TextAlign.right : TextAlign.left,
+        ),
+      ),
+    );
+  }
+}

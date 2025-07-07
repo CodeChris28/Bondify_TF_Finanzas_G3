@@ -1,3 +1,5 @@
+// lib/screens/home_screen.dart
+
 import 'package:bondifyfrontend/providers/bondoperation_provider.dart';
 import 'package:bondifyfrontend/providers/navigation_provider.dart';
 import 'package:bondifyfrontend/widgets/bondoperationitem_widget.dart';
@@ -15,14 +17,28 @@ class HomeScreen extends StatelessWidget {
     final bondoperations = bondoperationProvider.bondOperations;
     return Scaffold(
       appBar: AppBar(
-        title: Text('Bondify - Home'),
+        title: const Text('Mis Operaciones'),
         centerTitle: false,
-        actions: [IconButton(onPressed: (){}, icon: Icon(Icons.person_2_outlined))],
+        actions: [
+          IconButton(
+            onPressed: () {
+              // Navega a la pantalla de perfil cuando se presiona el ícono
+              Navigator.pushNamed(context, 'profileScreen');
+            },
+            icon: const Icon(Icons.person_2_outlined))
+        ],
       ),
-      body: Padding(padding: const EdgeInsets.all(10.0),
-      child: bondoperations.isEmpty? Text('PLs CREATE A BOND OPERATION'):ListView.builder(itemCount: bondoperations.length, itemBuilder: (context, index)=>BondoperationitemWidget(bondOperation: bondoperations[index]),),),
+      body: Padding(
+        padding: const EdgeInsets.all(10.0),
+        child: bondoperations.isEmpty
+            ? const Center(child: Text('Aún no tienes operaciones creadas.'))
+            : ListView.builder(
+                itemCount: bondoperations.length,
+                itemBuilder: (context, index) => BondoperationitemWidget(
+                    bondOperation: bondoperations[index]),
+              ),
+      ),
       bottomNavigationBar: const BottomNavigationBarWidget(),
-      
     );
   }
 }

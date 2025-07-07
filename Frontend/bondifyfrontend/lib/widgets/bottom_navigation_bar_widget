@@ -11,11 +11,8 @@ class BottomNavigationBarWidget extends StatelessWidget {
 
     return BottomNavigationBar(
       onTap: (value) {
-        // 1. Actualiza el índice en el provider para que el ícono correcto se resalte
         context.read<NavigationProvider>().setCurrentIndex(value);
 
-        // 2. Navega a la pantalla correspondiente usando las rutas que definiste
-        // Usamos pushReplacementNamed para no acumular pantallas en la pila de navegación.
         switch (value) {
           case 0:
             Navigator.pushReplacementNamed(context, 'homeScreen');
@@ -23,9 +20,9 @@ class BottomNavigationBarWidget extends StatelessWidget {
           case 1:
             Navigator.pushReplacementNamed(context, 'createOperationsScreen');
             break;
-          // case 2:
-          //   Navigator.pushReplacementNamed(context, 'profileScreen'); // Para el futuro
-          //   break;
+          case 2:
+            Navigator.pushReplacementNamed(context, 'profileScreen'); 
+            break;
         }
       },
       currentIndex: navProvider.currentIndex,
