@@ -1,47 +1,65 @@
+// ✅ financial_service.dart
 import 'dart:math';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:bondifyfrontend/models/bondoperation_model.dart';
 import 'package:bondifyfrontend/providers/bond_form_provider.dart';
 
-// Modelo para representar una fila del flujo de caja
 class CashFlowRow {
   final int period;
+  final Timestamp date;
   final double bondBalance;
-  final double interest;
+  final double indexedBond;
+  final double couponInterest;
+  final double quota;
   final double amortization;
-  final double coupon;
+  final double prima;
   final double shield;
-  final double issuerCashFlow;
-  final double bondholderCashFlow;
+  final double issuerFlow;
+  final double issuerFlowWithShield;
+  final double bondholderFlow;
+  final double flowAct;
+  final double faPorPlazo;
+  final double pConvexityFactor;
+
+  // Nuevos campos opcionales para similitud con Excel
+  final double? inflationAnnual;
+  final double? inflationPeriod;
+  final String? gracePeriod;
 
   CashFlowRow({
     required this.period,
+    required this.date,
     required this.bondBalance,
-    required this.interest,
+    required this.indexedBond,
+    required this.couponInterest,
+    required this.quota,
     required this.amortization,
-    required this.coupon,
+    required this.prima,
     required this.shield,
-    required this.issuerCashFlow,
-    required this.bondholderCashFlow,
+    required this.issuerFlow,
+    required this.issuerFlowWithShield,
+    required this.bondholderFlow,
+    required this.flowAct,
+    required this.faPorPlazo,
+    required this.pConvexityFactor,
+    this.inflationAnnual,
+    this.inflationPeriod,
+    this.gracePeriod,
   });
 }
 
-// Clase que encapsula toda la lógica de cálculo
 class FinancialService {
-
   Map<String, dynamic> calculateBondResults({
     required BondOperation bond,
     required BondFormProvider formProvider,
   }) {
-    // --- 1. Cálculo de Períodos y Días ---
     final double couponFrequencyInDays = _getCouponFrequencyInDays(bond.couponFrequency);
     final double periodsPerYear = bond.daysPerYear / couponFrequencyInDays;
     final int totalPeriods = (bond.numberOfYears * periodsPerYear).round();
     final double capitalizationInDays = _getCapitalizationInDays(bond.capitalization);
 
-    // --- 2. Cálculo de Tasas (TEP y TEA) ---
     double tep;
     double tea;
-    
     if (bond.interestRateType.toLowerCase() == 'efectiva') {
       tea = bond.interestRate / 100;
       tep = pow(1 + tea, couponFrequencyInDays / bond.daysPerYear) - 1;
@@ -52,78 +70,76 @@ class FinancialService {
       tea = pow(1 + tna / m, m) - 1;
       tep = pow(1 + tea, couponFrequencyInDays / bond.daysPerYear) - 1;
     }
-    
     final cokPeriodo = pow((1 + (bond.annualDiscountRate / 100)), (couponFrequencyInDays / bond.daysPerYear)) - 1;
 
-    // --- 3. CÁLCULO DE COSTOS INICIALES (LÓGICA CORREGIDA) ---
     double emisorCostsPercent = 0;
     double bonistaCostsPercent = 0;
-
-    // La prima siempre es del emisor
     emisorCostsPercent += bond.initialCostPercent / 100;
+    if (formProvider.selectedEstructuracionPayer != 'Bonista') emisorCostsPercent += bond.structuringCostPercent / 100;
+    if (formProvider.selectedColocacionPayer != 'Bonista') emisorCostsPercent += bond.placementCostPercent / 100;
+    if (formProvider.selectedFlotacionPayer != 'Emisor') bonistaCostsPercent += bond.flotationCostPercent / 100;
+    if (formProvider.selectedCavaliPayer != 'Emisor') bonistaCostsPercent += bond.cavaliCostPercent / 100;
 
-    // Costo de Estructuración
-    if (formProvider.selectedEstructuracionPayer == 'Emisor' || formProvider.selectedEstructuracionPayer == 'Ambos') {
-      emisorCostsPercent += bond.structuringCostPercent / 100;
-    }
-    if (formProvider.selectedEstructuracionPayer == 'Bonista' || formProvider.selectedEstructuracionPayer == 'Ambos') {
-      bonistaCostsPercent += bond.structuringCostPercent / 100;
-    }
-
-    // Costo de Colocación
-    if (formProvider.selectedColocacionPayer == 'Emisor' || formProvider.selectedColocacionPayer == 'Ambos') {
-      emisorCostsPercent += bond.placementCostPercent / 100;
-    }
-    if (formProvider.selectedColocacionPayer == 'Bonista' || formProvider.selectedColocacionPayer == 'Ambos') {
-      bonistaCostsPercent += bond.placementCostPercent / 100;
-    }
-
-    // Costo de Flotación
-    if (formProvider.selectedFlotacionPayer == 'Emisor' || formProvider.selectedFlotacionPayer == 'Ambos') {
-      emisorCostsPercent += bond.flotationCostPercent / 100;
-    }
-    if (formProvider.selectedFlotacionPayer == 'Bonista' || formProvider.selectedFlotacionPayer == 'Ambos') {
-      bonistaCostsPercent += bond.flotationCostPercent / 100;
-    }
-
-    // Costo de CAVALI
-    if (formProvider.selectedCavaliPayer == 'Emisor' || formProvider.selectedCavaliPayer == 'Ambos') {
-      emisorCostsPercent += bond.cavaliCostPercent / 100;
-    }
-    if (formProvider.selectedCavaliPayer == 'Bonista' || formProvider.selectedCavaliPayer == 'Ambos') {
-      bonistaCostsPercent += bond.cavaliCostPercent / 100;
-    }
-
-    // --- ¡AQUÍ ESTÁ LA CORRECCIÓN CLAVE! ---
-    // La base del cálculo ahora es el Valor Comercial, no el Nominal.
     final double costesEmisor = bond.commercialValue * emisorCostsPercent;
     final double costesBonista = bond.commercialValue * bonistaCostsPercent;
 
+    List<CashFlowRow> cashFlowTable = [];
+    final double flujoEmisorInicial = bond.commercialValue - costesEmisor;
+    final double flujoBonistaInicial = -bond.commercialValue - costesBonista;
 
-    // --- 4. Generación del Flujo de Caja ---
-    List<CashFlowRow> cashFlow = [];
+    cashFlowTable.add(CashFlowRow(
+      period: 0,
+      date: bond.issueDate,
+      bondBalance: 0, indexedBond: 0, couponInterest: 0, quota: 0, amortization: 0, prima: 0, shield: 0,
+      issuerFlow: flujoEmisorInicial,
+      issuerFlowWithShield: flujoEmisorInicial,
+      bondholderFlow: flujoBonistaInicial,
+      flowAct: 0, faPorPlazo: 0, pConvexityFactor: 0,
+    ));
+
     double currentBalance = bond.nominalValue;
-    final double coupon = currentBalance * ( (tep * pow(1 + tep, totalPeriods)) / (pow(1 + tep, totalPeriods) - 1) );
+    final double cuota = currentBalance * ((tep * pow(1 + tep, totalPeriods)) / (pow(1 + tep, totalPeriods) - 1));
 
     for (int i = 1; i <= totalPeriods; i++) {
       final interest = currentBalance * tep;
-      final amortization = coupon - interest;
+      final amortization = cuota - interest;
       final shield = interest * (bond.incomeTax / 100);
-      
-      cashFlow.add(CashFlowRow(
+      final double finalAmortization = (i == totalPeriods) ? currentBalance : amortization;
+      final double finalCoupon = interest + finalAmortization;
+      final double prima = (i == totalPeriods) ? -bond.nominalValue * (bond.initialCostPercent / 100) : 0;
+
+      final double flujoEmisor = -finalCoupon;
+      final double flujoEmisorConEscudo = flujoEmisor + shield;
+      final double flujoBonista = finalCoupon;
+
+      final double flujoActual = flujoBonista / pow(1 + cokPeriodo, i);
+      final double faPorPlazo = flujoActual * i;
+      final double pConvexidad = flujoActual * i * (i + 1);
+
+      cashFlowTable.add(CashFlowRow(
         period: i,
+        date: Timestamp.fromDate(bond.issueDate.toDate().add(Duration(days: (couponFrequencyInDays * i).round()))),
         bondBalance: currentBalance,
-        interest: interest,
-        amortization: amortization,
-        coupon: coupon,
+        indexedBond: currentBalance,
+        couponInterest: interest,
+        quota: finalCoupon,
+        amortization: finalAmortization,
+        prima: prima,
         shield: shield,
-        issuerCashFlow: -coupon + shield,
-        bondholderCashFlow: coupon,
+        issuerFlow: flujoEmisor,
+        issuerFlowWithShield: flujoEmisorConEscudo,
+        bondholderFlow: flujoBonista,
+        flowAct: flujoActual,
+        faPorPlazo: faPorPlazo,
+        pConvexityFactor: pConvexidad,
+        inflationAnnual: 0.0, // puedes agregar la real
+        inflationPeriod: 0.0, // puedes agregar la real
+        gracePeriod: 'S',     // puedes modificar según logica
       ));
-      currentBalance -= amortization;
+
+      currentBalance -= finalAmortization;
     }
 
-    // --- 5. Cálculo de Indicadores Finales (Placeholders) ---
     final double precioActual = 1056.91;
     final double utilidadPerdida = 0.08;
     final double duracion = 1.72;
@@ -133,8 +149,8 @@ class FinancialService {
     final double trea = 0.0633114;
     final double van = 0.0;
 
-    // --- 6. Devolver todos los resultados ---
     return {
+      'bond': bond,
       'interestRateType': bond.interestRateType,
       'couponFrequency': bond.couponFrequency,
       'couponFrequencyInDays': couponFrequencyInDays,
@@ -156,7 +172,7 @@ class FinancialService {
       'tcea': tcea,
       'tceaConEscudo': tceaConEscudo,
       'trea': trea,
-      'cashFlow': cashFlow,
+      'cashFlow': cashFlowTable,
     };
   }
 
